@@ -103,7 +103,11 @@ def save_raw(table):
 
 def load_new(until=LAST_DAY):
     """Fetch only what is not saved yet. Returns the number of new rows."""
-    fetched = fetch_range(FIRST_DAY, until)
+    wm = watermark()
+    start = wm.isoformat() if wm is not None else FIRST_DAY
+    fetched = fetch_range(start, until)
+    if wm is not None and len(fetched):
+        fetched = fetched[fetched["time"] > wm]
     if len(fetched):
         save_raw(fetched)
     log.info("acquire: %d new rows", len(fetched))
@@ -121,13 +125,16 @@ CONTRACT = pa.DataFrameSchema({
 })
 
 
+# AFTER:
 def split_by_contract(raw):
     """Return (good rows, rejected rows)."""
     try:
-        CONTRACT.validate(raw)
-    except Exception:
-        pass
-    return raw, raw.iloc[0:0]
+        CONTRACT.validate(raw, lazy=True)
+        return raw, raw.iloc[0:0]
+    except pa.errors.SchemaErrors as err:
+        bad_idx = err.failure_cases["index"].dropna().unique()
+        bad_mask = raw.index.isin(bad_idx)
+        return raw[~bad_mask], raw[bad_mask]
 
 
 def haversine_km(lat1, lon1, lat2, lon2):

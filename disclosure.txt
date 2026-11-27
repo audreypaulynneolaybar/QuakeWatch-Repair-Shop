@@ -1,0 +1,6 @@
+Group Members & Contributions:
+- Patrick Raphael Lista: Fixed Defect #1 (depth_km column key in features_stage), wrote parametrized test in tests/test_group.py, verified double pipeline run (new_rows=0), generated pytest_output.txt, and packaged final ZIP.
+- Gianela Zapata: Fixed Defect #2 (Asia/Manila timezone conversion), wrote fake API test in tests/test_group.py, and implemented file logging to logs/run.log in run.py.
+- Maureen Joi Cruz: Fixed Defect #3 (MAG_BINS threshold), wrote caplog test in tests/test_group.py, and added WARNING logging for rejected rows in quakewatch.py.
+- Patricia Ann Mae Pascual: Fixed Defect #4 (nearest city latitude/longitude order), wrote regression test in tests/test_group.py, added log.exception() handlers in quakewatch.py, and documented logging in REPAIR_LOG.md.
+- Audrey Paulynne Olaybar : Fixed Defects #5 and #6 (incremental watermark loading in load_new and lazy schema validation in split_by_contract), wrote regression test in tests/test_group.py, wrote Lesson Learned in REPAIR_LOG.md, and audited final ZIP contents.
