@@ -1,5 +1,6 @@
 import pandas as pd
 import quakewatch as qw
+import numpy as np
 
 
 def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
@@ -42,3 +43,21 @@ def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
     assert "valid-eq-1" in set(clean_df["id"])
     assert "invalid-neg-depth" not in set(clean_df["id"])
     assert "invalid-neg-depth" in set(rejects_df["id"])
+
+def test_nearest_city_does_not_swap_lat_lon():
+    """Defect #4 regression test: nearest_city must use (lat, lon) rather than swapped (lon, lat)."""
+    cities = pd.DataFrame({
+        "city_id": ["C_NEAR", "C_FAR"],
+        "lgu_name": ["Near City", "Far City"],
+        "latitude": [7.0, 17.5],
+        "longitude": [126.1, 121.5],
+    })
+    events = pd.DataFrame({
+        "latitude": [7.0],
+        "longitude": [126.0],
+    })
+
+    city_ids, distances = qw.nearest_city(events, cities)
+
+    assert city_ids[0] == "C_NEAR"
+    assert np.isclose(distances[0], qw.haversine_km(7.0, 126.0, 7.0, 126.1), atol=1e-6)
