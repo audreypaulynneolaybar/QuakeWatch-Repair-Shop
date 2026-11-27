@@ -132,6 +132,7 @@ def split_by_contract(raw):
         CONTRACT.validate(raw, lazy=True)
         return raw, raw.iloc[0:0]
     except pa.errors.SchemaErrors as err:
+        log.exception("integrate: schema contract failed with %d validation error(s)", len(err.failure_cases))
         bad_idx = err.failure_cases["index"].dropna().unique()
         bad_mask = raw.index.isin(bad_idx)
         return raw[~bad_mask], raw[bad_mask]
