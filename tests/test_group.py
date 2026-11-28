@@ -1,17 +1,11 @@
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
-=======
 import logging
->>>>>>> origin/maui-defect-3
 import pandas as pd
 import pytest
 import quakewatch as qw
-<<<<<<< HEAD
 import responses
-=======
 import numpy as np
->>>>>>> origin/patricia-defect-4
 
 
 def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
@@ -55,9 +49,6 @@ def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
     assert "invalid-neg-depth" not in set(clean_df["id"])
     assert "invalid-neg-depth" in set(rejects_df["id"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 def _fake_feature():
     t = datetime(2023, 12, 2, 14, 37, tzinfo=timezone.utc)
     return {
@@ -85,7 +76,6 @@ def test_local_time_is_manila_not_utc(project):
     row = feat.iloc[0]
     assert row["local"].strftime("%Y-%m-%d %H:%M") == "2023-12-02 22:37"
     assert row["hour_local"] == 22
-=======
 
 def test_integrate_logs_warning_on_rejected_rows(loaded, caplog):
     """Verify integrate() emits a WARNING log when contract-violating rows are rejected."""
@@ -107,8 +97,6 @@ def test_integrate_logs_warning_on_rejected_rows(loaded, caplog):
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert len(warnings) >= 1, "Expected a WARNING log when rows are rejected"
     assert "1" in warnings[0].getMessage() and "reject" in warnings[0].getMessage().lower()
->>>>>>> origin/maui-defect-3
-=======
 
 @pytest.mark.parametrize(
     "depth_km, expected_class",
@@ -149,8 +137,7 @@ def test_group_features_stage_depth_class_uses_depth_km(
 
     feat_df = qw.features_stage()
     assert feat_df["depth_class"].iloc[0] == expected_class
->>>>>>> origin/member1-defect1
-=======
+
 def test_nearest_city_does_not_swap_lat_lon():
     """Defect #4 regression test: nearest_city must use (lat, lon) rather than swapped (lon, lat)."""
     cities = pd.DataFrame({
@@ -168,4 +155,3 @@ def test_nearest_city_does_not_swap_lat_lon():
 
     assert city_ids[0] == "C_NEAR"
     assert np.isclose(distances[0], qw.haversine_km(7.0, 126.0, 7.0, 126.1), atol=1e-6)
->>>>>>> origin/patricia-defect-4
