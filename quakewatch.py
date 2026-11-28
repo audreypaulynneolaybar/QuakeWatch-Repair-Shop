@@ -132,6 +132,7 @@ def split_by_contract(raw):
         CONTRACT.validate(raw, lazy=True)
         return raw, raw.iloc[0:0]
     except pa.errors.SchemaErrors as err:
+        log.exception("integrate: schema contract failed with %d validation error(s)", len(err.failure_cases))
         bad_idx = err.failure_cases["index"].dropna().unique()
         bad_mask = raw.index.isin(bad_idx)
         return raw[~bad_mask], raw[bad_mask]
@@ -146,7 +147,9 @@ def haversine_km(lat1, lon1, lat2, lon2):
 
 def nearest_city(events, cities):
     """Return (city_id, distance in km) of the nearest city for every event."""
-    D = haversine_km(events["longitude"].to_numpy()[:, None], events["latitude"].to_numpy()[:, None],
+    if len(events) == 0:
+        return np.array([], dtype=cities["city_id"].dtype), np.array([], dtype=float)
+    D = haversine_km(events["latitude"].to_numpy()[:, None], events["longitude"].to_numpy()[:, None],
                      cities["latitude"].to_numpy()[None, :], cities["longitude"].to_numpy()[None, :])
     return cities["city_id"].to_numpy()[D.argmin(axis=1)], D.min(axis=1)
 
