@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from datetime import datetime, timezone
 
+=======
+import logging
+>>>>>>> origin/maui-defect-3
 import pandas as pd
 import quakewatch as qw
 import responses
@@ -46,6 +50,7 @@ def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
     assert "invalid-neg-depth" not in set(clean_df["id"])
     assert "invalid-neg-depth" in set(rejects_df["id"])
 
+<<<<<<< HEAD
 def _fake_feature():
     t = datetime(2023, 12, 2, 14, 37, tzinfo=timezone.utc)
     return {
@@ -73,3 +78,26 @@ def test_local_time_is_manila_not_utc(project):
     row = feat.iloc[0]
     assert row["local"].strftime("%Y-%m-%d %H:%M") == "2023-12-02 22:37"
     assert row["hour_local"] == 22
+=======
+
+def test_integrate_logs_warning_on_rejected_rows(loaded, caplog):
+    """Verify integrate() emits a WARNING log when contract-violating rows are rejected."""
+    bad_row = pd.DataFrame([{
+        "id": "bad_depth_test_1",
+        "time": pd.Timestamp("2023-06-01T00:00:00Z"),
+        "latitude": 14.5,
+        "longitude": 121.0,
+        "depth_km": -5.0,  # violates depth_km between(0, 700)
+        "mag": 5.5,
+        "magType": "mww",
+        "place": "Test invalid depth event",
+    }])
+    qw.save_raw(bad_row)
+
+    with caplog.at_level(logging.WARNING, logger="quakewatch"):
+        qw.integrate()
+
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) >= 1, "Expected a WARNING log when rows are rejected"
+    assert "1" in warnings[0].getMessage() and "reject" in warnings[0].getMessage().lower()
+>>>>>>> origin/maui-defect-3
