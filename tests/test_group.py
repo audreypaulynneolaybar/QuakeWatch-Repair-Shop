@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import logging
 >>>>>>> origin/maui-defect-3
 import pandas as pd
+import pytest
 import quakewatch as qw
 import responses
 
@@ -50,6 +51,7 @@ def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
     assert "invalid-neg-depth" not in set(clean_df["id"])
     assert "invalid-neg-depth" in set(rejects_df["id"])
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 def _fake_feature():
     t = datetime(2023, 12, 2, 14, 37, tzinfo=timezone.utc)
@@ -101,3 +103,45 @@ def test_integrate_logs_warning_on_rejected_rows(loaded, caplog):
     assert len(warnings) >= 1, "Expected a WARNING log when rows are rejected"
     assert "1" in warnings[0].getMessage() and "reject" in warnings[0].getMessage().lower()
 >>>>>>> origin/maui-defect-3
+=======
+
+@pytest.mark.parametrize(
+    "depth_km, expected_class",
+    [
+        (10.0, "shallow"),
+        (100.0, "intermediate"),
+        (400.0, "deep"),
+    ],
+)
+def test_group_features_stage_depth_class_uses_depth_km(
+    tmp_path, monkeypatch, depth_km, expected_class
+):
+    """Defect #1 regression test: features_stage must read depth_km without KeyError: 'depth'."""
+    clean_dir = tmp_path / "clean"
+    feat_dir = tmp_path / "features"
+    clean_dir.mkdir(parents=True)
+    feat_dir.mkdir(parents=True)
+
+    monkeypatch.setattr(qw, "CLEAN", clean_dir)
+    monkeypatch.setattr(qw, "FEAT", feat_dir)
+
+    clean_df = pd.DataFrame([
+        {
+            "id": "eq-depth-test",
+            "time": pd.Timestamp("2023-12-02T14:37:00Z"),
+            "latitude": 8.5,
+            "longitude": 126.4,
+            "depth_km": depth_km,
+            "mag": 6.5,
+            "magType": "mww",
+            "place": "Mindanao",
+            "city_id": "C10",
+            "city_name": "Davao",
+            "dist_km": 50.0,
+        }
+    ])
+    clean_df.to_parquet(clean_dir / "events.parquet", index=False)
+
+    feat_df = qw.features_stage()
+    assert feat_df["depth_class"].iloc[0] == expected_class
+>>>>>>> origin/member1-defect1
