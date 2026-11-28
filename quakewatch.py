@@ -30,7 +30,7 @@ AREA = {"minmagnitude": 5, "minlatitude": 4, "maxlatitude": 22,
         "minlongitude": 116, "maxlongitude": 130, "orderby": "time-asc", "format": "geojson"}
 FIRST_DAY, LAST_DAY = "2020-01-01", "2025-01-01"
 RAW, CLEAN, FEAT, FIGS = Path("data/raw"), Path("data/clean"), Path("data/features"), Path("figures")
-MAG_BINS = [4.95, 6.05, 6.95, 7.95, 10]
+MAG_BINS = [4.95, 5.95, 6.95, 7.95, 10]
 MAG_LABELS = ["Moderate", "Strong", "Major", "Great"]
 CALLS = {"n": 0}                      # counts every API call
 
@@ -154,6 +154,8 @@ def nearest_city(events, cities):
 def integrate():
     raw = read_raw()
     good, rejects = split_by_contract(raw)
+    if len(rejects):
+        log.warning("integrate: %d row(s) rejected by contract", len(rejects))
     cities = pd.read_csv("data/ref/cities.csv")
     good = good.reset_index(drop=True)
     good["city_id"], good["near_km"] = nearest_city(good, cities)
@@ -164,7 +166,6 @@ def integrate():
     rejects.to_csv(CLEAN / "rejects.csv", index=False)
     log.info("integrate: %d raw, %d rejected, %d clean", len(raw), len(rejects), len(out))
     return out
-
 
 # ----------------------------------------------------------------- features
 def mag_class(mag):

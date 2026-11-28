@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import quakewatch as qw
 
@@ -42,3 +43,25 @@ def test_group_negative_depth_row_is_rejected(tmp_path, monkeypatch):
     assert "valid-eq-1" in set(clean_df["id"])
     assert "invalid-neg-depth" not in set(clean_df["id"])
     assert "invalid-neg-depth" in set(rejects_df["id"])
+
+
+def test_integrate_logs_warning_on_rejected_rows(loaded, caplog):
+    """Verify integrate() emits a WARNING log when contract-violating rows are rejected."""
+    bad_row = pd.DataFrame([{
+        "id": "bad_depth_test_1",
+        "time": pd.Timestamp("2023-06-01T00:00:00Z"),
+        "latitude": 14.5,
+        "longitude": 121.0,
+        "depth_km": -5.0,  # violates depth_km between(0, 700)
+        "mag": 5.5,
+        "magType": "mww",
+        "place": "Test invalid depth event",
+    }])
+    qw.save_raw(bad_row)
+
+    with caplog.at_level(logging.WARNING, logger="quakewatch"):
+        qw.integrate()
+
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) >= 1, "Expected a WARNING log when rows are rejected"
+    assert "1" in warnings[0].getMessage() and "reject" in warnings[0].getMessage().lower()
